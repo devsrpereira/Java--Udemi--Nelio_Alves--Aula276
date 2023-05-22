@@ -6,10 +6,12 @@ public class Department implements Serializable {
     private int id;
     private String name;
 
+    public Department(){}
     public Department(int id, String name) {
         this.id = id;
         this.name = name;
     }
+
     public int getId() {
         return id;
     }
