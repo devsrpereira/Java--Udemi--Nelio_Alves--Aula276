@@ -89,7 +89,39 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public List<Seller> findAll() {
-        return null;
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        try {
+            st = conn.prepareStatement(
+                    "SELECT seller.*,department.Name as DepName "
+                            + "FROM seller INNER JOIN department "
+                            + "ON seller.DepartmentId = Department.Id "
+                            + "ORDER by Name");
+
+            rs = st.executeQuery();
+
+            List<Seller> list = new ArrayList<>();
+            Map<Integer, Department> map = new HashMap<>();
+
+            //teste para saber se o departamento já existe e poder reutiliza-lo
+            while (rs.next()) {
+                Department dep = map.get(rs.getInt("DepartmentId"));
+                if(dep == null){
+                    dep = instantiateDepartment(rs);
+                    map.put(rs.getInt("DepartmentId"), dep);
+                }
+                Seller obj = instantiateSeller(rs, dep);
+                list.add(obj);
+            }
+            return list;
+        }
+        catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        }
+        finally {
+            DB.closeStatement(st);
+            DB.closeResultSet(rs);
+        }
     }
 
     @Override
@@ -103,15 +135,13 @@ public class SellerDaoJDBC implements SellerDao {
                             + "ON seller.DepartmentId = Department.Id "
                             + "WHERE DepartmentId = ? "
                             + "ORDER by Name");
-
             st.setInt(1, department.getId());
             rs = st.executeQuery();
-
             List<Seller> list = new ArrayList<>();
             Map<Integer, Department> map = new HashMap<>();
 
+            //teste para saber se o departamento já existe e poder reutiliza-lo
             while (rs.next()) {
-
                 Department dep = map.get(rs.getInt("DepartmentId"));
                 if(dep == null){
                     dep = instantiateDepartment(rs);
