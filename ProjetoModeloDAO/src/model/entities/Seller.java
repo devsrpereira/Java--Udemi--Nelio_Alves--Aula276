@@ -2,6 +2,7 @@ package model.entities;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 
 public class Seller implements Serializable {
@@ -12,6 +13,8 @@ public class Seller implements Serializable {
     private double baseSalary;
 
     private Department department;
+
+    DateTimeFormatter dtm = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public Seller(){}
 
@@ -77,14 +80,14 @@ public class Seller implements Serializable {
 
     @Override
     public String toString() {
-        return "Seller{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", birthDate=" + birthDate +
-                ", baseSalary=" + baseSalary +
-                ", department=" + department +
-                '}';
+        return "Seller: [" +
+                "id = " + id +
+                ", name = " + name +
+                ", email = " + email +
+                ", birthDate = " + dtm.format(birthDate)+
+                ", baseSalary = " + String.format("%.2f",baseSalary) +
+                ", department = " + department +
+                "]";
     }
 }
 
