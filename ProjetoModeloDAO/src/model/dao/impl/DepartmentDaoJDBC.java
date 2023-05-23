@@ -5,10 +5,8 @@ import db.DbException;
 import model.dao.DepartmentDao;
 import model.entities.Department;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DepartmentDaoJDBC implements DepartmentDao {
@@ -20,7 +18,35 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 
     @Override
     public void insert(Department obj) {
+        PreparedStatement st = null;
+        try {
+            st = conn.prepareStatement(
+                    "INSERT INTO department "
+                        + "(Name) "
+                        + "VALUES "
+                        + "(?)",
+                    Statement.RETURN_GENERATED_KEYS);
 
+            st.setString(1,obj.getName());
+            int rowsAffect = st.executeUpdate();
+            if (rowsAffect > 0){
+                ResultSet rs = st.getGeneratedKeys();
+                if(rs.next()){
+                    int id = rs.getInt(1);
+                    obj.setId(id);
+                }
+            DB.closeResultSet(rs);
+            }
+            else{
+                throw new DbException("Erro inesperado, nenhum item foi adicionado ao banco");
+            }
+        }
+        catch (SQLException e){
+            throw new DbException(e.getMessage());
+        }
+        finally {
+            DB.closeStatement(st);
+        }
     }
 
     @Override
@@ -70,7 +96,31 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 
     @Override
     public List<Department> findAll() {
-        return null;
+        PreparedStatement st = null;
+        ResultSet rs = null;
+        try{
+            st = conn.prepareStatement(
+                    "SELECT department.*, department.Name as DepName "
+                    + "FROM department "
+                    + "ORDER by ID");
+
+            rs = st.executeQuery();
+
+            List<Department> list = new ArrayList<>();
+
+            while(rs.next()){
+                Department dep = instantiateDepartment(rs);
+                list.add(dep);
+            }
+            return list;
+        }
+        catch (SQLException e){
+            throw new DbException(e.getMessage());
+        }
+        finally {
+            DB.closeResultSet(rs);
+            DB.closeStatement(st);
+        }
     }
 
 }
